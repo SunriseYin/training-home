@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>训练数据统计</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: Arial, "Microsoft YaHei", sans-serif; background: #f3f7fb; color: #222; }
+    header { background: linear-gradient(135deg, #2c3e50, #3498db); color: white; padding: 34px 20px; text-align: center; }
+    header h1 { margin: 0; font-size: 32px; }
+    header p { margin: 10px auto 0; max-width: 760px; font-size: 16px; opacity: 0.92; }
+    main { max-width: 1120px; margin: 30px auto; padding: 0 20px; }
+    .section-title { font-size: 24px; margin-bottom: 16px; color: #1f2937; }
+    .section-subtitle { color: #475569; margin-bottom: 24px; }
+    .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 18px; }
+    .repo-card { background: white; border-radius: 18px; padding: 22px; box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08); border: 1px solid #e2e8f0; }
+    .repo-card h3 { margin: 0 0 10px; font-size: 20px; }
+    .repo-card p { margin: 0; color: #475569; line-height: 1.7; }
+    .repo-badge { display: inline-flex; align-items: center; gap: 8px; margin-top: 16px; padding: 6px 12px; border-radius: 999px; background: #eff6ff; color: #2563eb; font-size: 13px; }
+    .stats-panel { display: grid; gap: 24px; margin-top: 16px; }
+    .calendar-card, .activity-card { background: white; border-radius: 20px; padding: 24px; box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06); border: 1px solid #e2e8f0; }
+    .calendar-grid { display: grid; grid-auto-flow: column; grid-template-rows: repeat(7, 18px); gap: 5px; }
+    .day-cell { width: 18px; height: 18px; border-radius: 4px; background: #ebedf0; position: relative; }
+    .day-cell:hover { outline: 2px solid rgba(59,130,246,0.4); outline-offset: 2px; }
+    .day-cell[data-count="0"] { background: #ebedf0; }
+    .level-1 { background: #c6e48b; }
+    .level-2 { background: #7bc96f; }
+    .level-3 { background: #239a3b; }
+    .level-4 { background: #196127; }
+    .legend { display: flex; align-items: center; gap: 10px; margin-top: 16px; flex-wrap: wrap; color: #475569; font-size: 14px; }
+    .legend span { display: inline-flex; align-items: center; gap: 6px; }
+    .legend-dot { width: 14px; height: 14px; border-radius: 3px; display: inline-block; }
+    .activity-list { display: flex; flex-direction: column; gap: 16px; }
+    .timeline-day { border-left: 3px solid #60a5fa; padding-left: 16px; position: relative; }
+    .timeline-day::before { content: ""; width: 12px; height: 12px; border-radius: 50%; background: #3b82f6; position: absolute; left: -8px; top: 8px; }
+    .timeline-date { font-size: 16px; margin-bottom: 8px; color: #111827; }
+    .timeline-item { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px 16px; color: #334155; line-height: 1.6; }
+    .timeline-item strong { color: #0f172a; }
+    .empty-state { color: #64748b; font-size: 15px; margin-top: 12px; }
+    .back-link { display: inline-flex; align-items: center; gap: 8px; margin-top: 12px; color: #2563eb; text-decoration: none; font-size: 14px; }
+    .back-link:hover { text-decoration: underline; }
+    .tooltip { position: absolute; left: 50%; top: -40px; transform: translateX(-50%); background: rgba(15, 23, 42, 0.92); color: white; padding: 6px 10px; font-size: 12px; border-radius: 8px; white-space: nowrap; pointer-events: none; opacity: 0; transition: opacity 0.15s ease; z-index: 10; }
+    .day-cell:hover .tooltip { opacity: 1; }
+    @media (max-width: 900px) { .calendar-grid { gap: 4px; } .day-cell { width: 16px; height: 16px; } }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>训练数据统计</h1>
+    <p>这里统一展示你在浏览器本地保存的训练数据，包括已记录的训练模块、最近一年的训练热力日历和具体的训练活动时间线。</p>
+  </header>
+
+  <main>
+    <section>
+      <h2 class="section-title">Popular repositories</h2>
+      <p class="section-subtitle">检测到哪些训练模块已经产生了本地缓存数据。</p>
+      <div class="card-grid" id="repoCards"></div>
+      <p class="empty-state" id="repoEmpty" style="display:none;">目前还没有检测到任何训练模块记录。请先在训练页面完成一次训练。</p>
+    </section>
+
+    <section class="stats-panel">
+      <div class="calendar-card">
+        <h2 class="section-title">Contributions in the last year</h2>
+        <p class="section-subtitle">类似 GitHub 的年度贡献日历。颜色越深，表示当天训练次数越多。</p>
+        <div class="calendar-grid" id="contributionCalendar"></div>
+        <div class="legend">
+          <span><span class="legend-dot" style="background:#ebedf0"></span>0 次</span>
+          <span><span class="legend-dot" style="background:#c6e48b"></span>1 次</span>
+          <span><span class="legend-dot" style="background:#7bc96f"></span>2 次</span>
+          <span><span class="legend-dot" style="background:#239a3b"></span>3 次</span>
+          <span><span class="legend-dot" style="background:#196127"></span>4+ 次</span>
+        </div>
+      </div>
+
+      <div class="activity-card">
+        <h2 class="section-title">Contribution activity</h2>
+        <p class="section-subtitle">按日期展示每次训练会话和对应结果。</p>
+        <div class="activity-list" id="activityList"></div>
+        <p class="empty-state" id="activityEmpty" style="display:none;">暂无训练活动记录。完成训练后此处会自动生成时间线。</p>
+      </div>
+    </section>
+
+    <a class="back-link" href="index.html">← 返回训练主页</a>
+  </main>
+
+  <script>
+    const STORAGE_KEY = "attentionGameHistory";
+    const REPOS = [
+      {
+        key: STORAGE_KEY,
+        title: "注意力训练小游戏",
+        description: "保存了你的分数、错误、命中率和平均反应时间的训练历史。",
+        icon: "🎯"
+      }
+    ];
+
+    function getHistory() {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return [];
+      try { return JSON.parse(raw); } catch { return []; }
+    }
+
+    function formatDate(date) {
+      return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
+    }
+
+    function getCountLevel(count, maxCount) {
+      if (count === 0) return 0;
+      if (count < 2 || maxCount < 2) return 1;
+      if (count < Math.max(3, Math.ceil(maxCount * 0.4))) return 2;
+      if (count < Math.max(4, Math.ceil(maxCount * 0.7))) return 3;
+      return 4;
+    }
+
+    function renderPopularRepositories(history) {
+      const repoCards = document.getElementById('repoCards');
+      const repoEmpty = document.getElementById('repoEmpty');
+      const activeRepos = REPOS.filter(repo => history.length > 0);
+
+      if (activeRepos.length === 0) {
+        repoCards.innerHTML = '';
+        repoEmpty.style.display = 'block';
+        return;
+      }
+
+      repoEmpty.style.display = 'none';
+      repoCards.innerHTML = activeRepos.map(repo => {
+        return `
+          <div class="repo-card">
+            <div class="repo-badge">${repo.icon}</div>
+            <h3>${repo.title}</h3>
+            <p>${repo.description}</p>
+            <div class="repo-badge">已记录会话：${history.length} 次</div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function buildCalendarData(history) {
+      const counts = {};
+      history.forEach(item => {
+        if (!item.time) return;
+        const dateKey = item.time.split(' ')[0];
+        counts[dateKey] = (counts[dateKey] || 0) + 1;
+      });
+
+      const today = new Date();
+      const start = new Date(today);
+      start.setDate(start.getDate() - 364);
+      const days = [];
+      for (let i = 0; i < 365; i++) {
+        const day = new Date(start);
+        day.setDate(start.getDate() + i);
+        const key = formatDate(day);
+        days.push({ date: day, key, count: counts[key] || 0 });
+      }
+      return days;
+    }
+
+    function renderContributionCalendar(history) {
+      const container = document.getElementById('contributionCalendar');
+      const days = buildCalendarData(history);
+      const maxCount = Math.max(...days.map(d => d.count), 1);
+
+      const cells = days.map(day => {
+        const level = getCountLevel(day.count, maxCount);
+        const statusClass = level === 0 ? '' : `level-${level}`;
+        const countText = day.count === 0 ? '没有训练' : `训练 ${day.count} 次`;
+        return `
+          <div class="day-cell ${statusClass}" data-count="${day.count}">
+            <span class="tooltip">${day.key} · ${countText}</span>
+          </div>
+        `;
+      }).join('');
+
+      container.innerHTML = cells;
+    }
+
+    function renderContributionActivity(history) {
+      const activityList = document.getElementById('activityList');
+      const activityEmpty = document.getElementById('activityEmpty');
+      if (history.length === 0) {
+        activityList.innerHTML = '';
+        activityEmpty.style.display = 'block';
+        return;
+      }
+      activityEmpty.style.display = 'none';
+
+      const grouped = history.reduce((map, item) => {
+        const dateKey = item.time.split(' ')[0];
+        if (!map[dateKey]) map[dateKey] = [];
+        map[dateKey].push(item);
+        return map;
+      }, {});
+
+      const sortedDates = Object.keys(grouped).sort((a, b) => (a < b ? 1 : -1));
+      activityList.innerHTML = sortedDates.map(date => {
+        const items = grouped[date];
+        const sessionCount = items.length;
+        const averageScore = Math.round(items.reduce((sum, item) => sum + item.score, 0) / sessionCount);
+        return `
+          <div class="timeline-day">
+            <div class="timeline-date">${date} · 共 ${sessionCount} 次训练 · 平均得分 ${averageScore}</div>
+            ${items.map(item => `
+              <div class="timeline-item">
+                <div>时间：<strong>${item.time.split(' ')[1]}</strong></div>
+                <div>得分：<strong>${item.score}</strong></div>
+                <div>错误：<strong>${item.mistakes}</strong></div>
+                <div>命中率：<strong>${item.accuracy}%</strong></div>
+                <div>平均反应：<strong>${item.avgReaction} 毫秒</strong></div>
+              </div>
+            `).join('')}
+          </div>
+        `;
+      }).join('');
+    }
+
+    const history = getHistory();
+    renderPopularRepositories(history);
+    renderContributionCalendar(history);
+    renderContributionActivity(history);
+  </script>
+</body>
+</html>
