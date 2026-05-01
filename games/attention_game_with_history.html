@@ -260,7 +260,16 @@
     1. 只点击绿色圆点，不要点击红色圆点。<br>
     2. 每局 60 秒，结束后会自动记录本次训练结果。<br>
     3. 点击右侧“历史记录”按钮，可以查看过往训练成果。<br>
-    4. 记录保存在浏览器本地缓存中，清理浏览器数据或更换浏览器后记录可能消失。
+    4. 记录保存在浏览器本地缓存中，清理浏览器数据或更换浏览器后记录可能消失。<br><br>
+    <strong>分数规则：</strong><br>
+    - 45 分以上且错误少于 5 次：表现很好，说明注意力和反应能力都不错。<br>
+    - 25-44 分且错误少于 10 次：表现中等，建议继续练习稳定性。<br>
+    - 低于 25 分或错误较多：说明注意力不够集中，先放慢速度，减少错误更重要。<br><br>
+    <strong>提高注意力的简单方案：</strong><br>
+    - 每天坚持 5-10 分钟专注训练，保持稳定节奏。<br>
+    - 训练时远离干扰，关闭提示音、手机通知或其他干扰源。<br>
+    - 训练结束后稍作休息，避免疲劳导致注意力下降。<br>
+    - 养成规律作息、多喝水、适当运动的习惯，有助于提升整体注意力。<br>
   </div>
 
   <button id="historyToggle" onclick="toggleHistory()">历史记录</button>
@@ -486,7 +495,7 @@
       history.unshift(record);
 
       // 最多保留最近 100 条，避免本地缓存过大
-      const limitedHistory = history.slice(0, 100);
+      const limitedHistory = history.slice(0, 10000);
 
       localStorage.setItem(STORAGE_KEY, JSON.stringify(limitedHistory));
     }
