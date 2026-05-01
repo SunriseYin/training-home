@@ -210,6 +210,20 @@
       line-height: 1.7;
     }
 
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin: 12px 0 0 20px;
+      color: #2563eb;
+      text-decoration: none;
+      font-size: 14px;
+    }
+
+    .back-link:hover {
+      text-decoration: underline;
+    }
+
     @media (max-width: 900px) {
       #gameArea, #tip {
         width: 92vw;
@@ -224,6 +238,7 @@
 </head>
 <body>
 
+  <a class="back-link" href="../index.html">← 返回训练主页</a>
   <h1>注意力训练小游戏</h1>
 
   <div id="info">
