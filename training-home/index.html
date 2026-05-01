@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>我的训练主页</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, "Microsoft YaHei", sans-serif;
+      background: #f4f6f8;
+      color: #222;
+    }
+
+    header {
+      background: linear-gradient(135deg, #2c3e50, #3498db);
+      color: white;
+      padding: 40px 20px;
+      text-align: center;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 34px;
+    }
+
+    header p {
+      margin-top: 12px;
+      font-size: 16px;
+      opacity: 0.9;
+    }
+
+    main {
+      max-width: 1100px;
+      margin: 30px auto;
+      padding: 0 20px;
+    }
+
+    .section-title {
+      font-size: 24px;
+      margin-bottom: 20px;
+      color: #333;
+    }
+
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 20px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 14px;
+      padding: 24px;
+      text-decoration: none;
+      color: #222;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+      transition: all 0.2s ease;
+      border: 1px solid #e5e7eb;
+      display: block;
+    }
+
+    .card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.14);
+    }
+
+    .card-icon {
+      width: 52px;
+      height: 52px;
+      border-radius: 14px;
+      background: #3498db;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+      margin-bottom: 16px;
+    }
+
+    .card h2 {
+      margin: 0 0 10px;
+      font-size: 21px;
+    }
+
+    .card p {
+      margin: 0;
+      color: #666;
+      font-size: 15px;
+      line-height: 1.6;
+    }
+
+    footer {
+      margin-top: 50px;
+      padding: 20px;
+      text-align: center;
+      color: #888;
+      font-size: 14px;
+    }
+
+    .tag {
+      display: inline-block;
+      margin-top: 16px;
+      padding: 5px 10px;
+      border-radius: 999px;
+      background: #ecf5ff;
+      color: #2980b9;
+      font-size: 13px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <header>
+    <h1>我的训练主页</h1>
+    <p>集中管理你的小游戏、工具和常用链接</p>
+  </header>
+
+  <main>
+    <h2 class="section-title">训练工具</h2>
+
+    <div class="card-grid">
+
+      <a class="card" href="/games/attention_game_with_history.html">
+        <div class="card-icon">🎯</div>
+        <h2>注意力训练小游戏</h2>
+        <p>
+          通过点击绿色圆点、避开红色圆点，训练选择性注意、反应速度和抑制控制。
+        </p>
+        <span class="tag">注意力训练</span>
+      </a>
+
+      <a class="card" href="#">
+        <div class="card-icon">🧘</div>
+        <h2>呼吸放松训练</h2>
+        <p>
+          这里可以以后放一个呼吸节奏训练页面，比如 4-2-6 呼吸法。
+        </p>
+        <span class="tag">待添加</span>
+      </a>
+
+      <a class="card" href="#">
+        <div class="card-icon">📊</div>
+        <h2>训练数据统计</h2>
+        <p>
+          这里可以以后扩展成统一查看训练结果的页面。
+        </p>
+        <span class="tag">待添加</span>
+      </a>
+
+    </div>
+  </main>
+
+  <footer>
+    训练贵在稳定，不在一次练很久。
+  </footer>
+
+</body>
+</html>

@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>注意力训练小游戏 - 带历史记录</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, "Microsoft YaHei", sans-serif;
+      background: #f4f6f8;
+      text-align: center;
+      user-select: none;
+      overflow-x: hidden;
+    }
+
+    h1 {
+      margin-top: 20px;
+      color: #333;
+    }
+
+    #info {
+      margin: 10px auto;
+      font-size: 18px;
+      color: #333;
+    }
+
+    #gameArea {
+      margin: 20px auto;
+      width: 800px;
+      height: 500px;
+      background: white;
+      border: 2px solid #333;
+      border-radius: 12px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    .circle {
+      position: absolute;
+      border-radius: 50%;
+      cursor: pointer;
+      transition: transform 0.1s;
+    }
+
+    .circle:active {
+      transform: scale(0.9);
+    }
+
+    .green {
+      background: #2ecc71;
+    }
+
+    .red {
+      background: #e74c3c;
+    }
+
+    button {
+      font-size: 18px;
+      padding: 10px 24px;
+      border: none;
+      border-radius: 8px;
+      background: #3498db;
+      color: white;
+      cursor: pointer;
+      margin: 8px;
+    }
+
+    button:hover {
+      background: #2980b9;
+    }
+
+    #result {
+      font-size: 18px;
+      color: #222;
+      margin-top: 10px;
+      line-height: 1.8;
+    }
+
+    #tip {
+      width: 800px;
+      margin: 10px auto 40px;
+      text-align: left;
+      color: #555;
+      line-height: 1.7;
+      background: #fff;
+      padding: 15px 20px;
+      border-radius: 10px;
+      border: 1px solid #ddd;
+    }
+
+    /* 右侧历史记录按钮 */
+    #historyToggle {
+      position: fixed;
+      right: 0;
+      top: 180px;
+      z-index: 1001;
+      writing-mode: vertical-rl;
+      letter-spacing: 2px;
+      border-radius: 8px 0 0 8px;
+      padding: 15px 8px;
+      background: #8e44ad;
+    }
+
+    #historyToggle:hover {
+      background: #71368a;
+    }
+
+    /* 历史记录面板 */
+    #historyPanel {
+      position: fixed;
+      top: 0;
+      right: -420px;
+      width: 420px;
+      height: 100vh;
+      background: #ffffff;
+      box-shadow: -4px 0 12px rgba(0,0,0,0.25);
+      z-index: 1000;
+      transition: right 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      text-align: left;
+    }
+
+    #historyPanel.open {
+      right: 0;
+    }
+
+    #historyHeader {
+      padding: 18px;
+      background: #34495e;
+      color: white;
+    }
+
+    #historyHeader h2 {
+      margin: 0 0 10px 0;
+      font-size: 22px;
+    }
+
+    #historyHeader p {
+      margin: 0;
+      font-size: 14px;
+      color: #ecf0f1;
+    }
+
+    #historyActions {
+      padding: 12px;
+      border-bottom: 1px solid #ddd;
+      text-align: center;
+    }
+
+    #clearHistoryBtn {
+      background: #e74c3c;
+      font-size: 15px;
+      padding: 8px 16px;
+    }
+
+    #clearHistoryBtn:hover {
+      background: #c0392b;
+    }
+
+    #closeHistoryBtn {
+      background: #7f8c8d;
+      font-size: 15px;
+      padding: 8px 16px;
+    }
+
+    #closeHistoryBtn:hover {
+      background: #636e72;
+    }
+
+    #historyList {
+      padding: 12px;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    .historyItem {
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 10px;
+      background: #fafafa;
+      line-height: 1.6;
+      font-size: 14px;
+    }
+
+    .historyItem strong {
+      color: #2c3e50;
+    }
+
+    .historyTime {
+      font-weight: bold;
+      color: #34495e;
+      margin-bottom: 5px;
+    }
+
+    .emptyHistory {
+      color: #888;
+      text-align: center;
+      margin-top: 30px;
+      line-height: 1.8;
+    }
+
+    #historySummary {
+      padding: 12px;
+      background: #f1f3f5;
+      border-bottom: 1px solid #ddd;
+      font-size: 14px;
+      line-height: 1.7;
+    }
+
+    @media (max-width: 900px) {
+      #gameArea, #tip {
+        width: 92vw;
+      }
+
+      #historyPanel {
+        width: 88vw;
+        right: -88vw;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <h1>注意力训练小游戏</h1>
+
+  <div id="info">
+    时间：<span id="time">60</span> 秒　
+    得分：<span id="score">0</span>　
+    错误：<span id="mistakes">0</span>　
+    命中率：<span id="accuracy">100%</span>
+  </div>
+
+  <button onclick="startGame()">开始游戏</button>
+  <button onclick="resetGame()">重置</button>
+
+  <div id="gameArea"></div>
+
+  <div id="result"></div>
+
+  <div id="tip">
+    <strong>玩法：</strong><br>
+    1. 只点击绿色圆点，不要点击红色圆点。<br>
+    2. 每局 60 秒，结束后会自动记录本次训练结果。<br>
+    3. 点击右侧“历史记录”按钮，可以查看过往训练成果。<br>
+    4. 记录保存在浏览器本地缓存中，清理浏览器数据或更换浏览器后记录可能消失。
+  </div>
+
+  <button id="historyToggle" onclick="toggleHistory()">历史记录</button>
+
+  <div id="historyPanel">
+    <div id="historyHeader">
+      <h2>训练历史记录</h2>
+      <p>这里记录你每次训练结束后的结果。</p>
+    </div>
+
+    <div id="historySummary"></div>
+
+    <div id="historyActions">
+      <button id="closeHistoryBtn" onclick="closeHistory()">关闭</button>
+      <button id="clearHistoryBtn" onclick="clearHistory()">清空记录</button>
+    </div>
+
+    <div id="historyList"></div>
+  </div>
+
+  <script>
+    const gameArea = document.getElementById("gameArea");
+    const timeEl = document.getElementById("time");
+    const scoreEl = document.getElementById("score");
+    const mistakesEl = document.getElementById("mistakes");
+    const accuracyEl = document.getElementById("accuracy");
+    const resultEl = document.getElementById("result");
+
+    const historyPanel = document.getElementById("historyPanel");
+    const historyList = document.getElementById("historyList");
+    const historySummary = document.getElementById("historySummary");
+
+    const STORAGE_KEY = "attentionGameHistory";
+
+    let score = 0;
+    let mistakes = 0;
+    let totalClicks = 0;
+    let timeLeft = 60;
+    let gameRunning = false;
+
+    let timer = null;
+    let createTimer = null;
+
+    let reactionTimes = [];
+
+    function startGame() {
+      if (gameRunning) return;
+
+      resetGame();
+      gameRunning = true;
+      resultEl.innerHTML = "";
+
+      timer = setInterval(() => {
+        timeLeft--;
+        timeEl.textContent = timeLeft;
+
+        if (timeLeft <= 0) {
+          endGame();
+        }
+      }, 1000);
+
+      createTimer = setInterval(() => {
+        createCircle();
+      }, 700);
+    }
+
+    function resetGame() {
+      gameRunning = false;
+      clearInterval(timer);
+      clearInterval(createTimer);
+
+      score = 0;
+      mistakes = 0;
+      totalClicks = 0;
+      timeLeft = 60;
+      reactionTimes = [];
+
+      timeEl.textContent = timeLeft;
+      scoreEl.textContent = score;
+      mistakesEl.textContent = mistakes;
+      accuracyEl.textContent = "100%";
+      resultEl.innerHTML = "";
+      gameArea.innerHTML = "";
+    }
+
+    function endGame() {
+      gameRunning = false;
+      clearInterval(timer);
+      clearInterval(createTimer);
+      gameArea.innerHTML = "";
+
+      let accuracy = totalClicks === 0 ? 0 : Math.round((score / totalClicks) * 100);
+
+      let avgReaction = 0;
+      if (reactionTimes.length > 0) {
+        avgReaction = Math.round(
+          reactionTimes.reduce((a, b) => a + b, 0) / reactionTimes.length
+        );
+      }
+
+      let comment = "";
+
+      if (score >= 45 && mistakes <= 5) {
+        comment = "表现很好，说明你的选择性注意和反应控制都不错。";
+      } else if (score >= 25 && mistakes <= 10) {
+        comment = "表现中等，可以继续练习稳定性和反应速度。";
+      } else {
+        comment = "建议先降低速度，不要急着点，优先减少错误。";
+      }
+
+      resultEl.innerHTML = `
+        <strong>训练结束</strong><br>
+        最终得分：${score}<br>
+        错误次数：${mistakes}<br>
+        命中率：${accuracy}%<br>
+        平均反应时间：${avgReaction} 毫秒<br>
+        ${comment}
+      `;
+
+      saveHistory({
+        time: formatDateTime(new Date()),
+        timestamp: Date.now(),
+        score: score,
+        mistakes: mistakes,
+        totalClicks: totalClicks,
+        accuracy: accuracy,
+        avgReaction: avgReaction
+      });
+
+      renderHistory();
+    }
+
+    function createCircle() {
+      if (!gameRunning) return;
+
+      const circle = document.createElement("div");
+      circle.classList.add("circle");
+
+      const isGreen = Math.random() < 0.6;
+      circle.classList.add(isGreen ? "green" : "red");
+
+      const size = randomInt(35, 65);
+      circle.style.width = size + "px";
+      circle.style.height = size + "px";
+
+      const maxX = gameArea.clientWidth - size;
+      const maxY = gameArea.clientHeight - size;
+
+      circle.style.left = randomInt(0, maxX) + "px";
+      circle.style.top = randomInt(0, maxY) + "px";
+
+      const birthTime = Date.now();
+
+      circle.onclick = function(event) {
+        if (!gameRunning) return;
+
+        totalClicks++;
+
+        if (isGreen) {
+          score++;
+          const reactionTime = Date.now() - birthTime;
+          reactionTimes.push(reactionTime);
+        } else {
+          mistakes++;
+        }
+
+        updateInfo();
+        circle.remove();
+        event.stopPropagation();
+      };
+
+      gameArea.appendChild(circle);
+
+      let disappearTime = Math.max(600, 1800 - score * 15);
+
+      setTimeout(() => {
+        if (circle.parentNode) {
+          circle.remove();
+        }
+      }, disappearTime);
+    }
+
+    gameArea.onclick = function() {
+      if (!gameRunning) return;
+
+      totalClicks++;
+      mistakes++;
+      updateInfo();
+    };
+
+    function updateInfo() {
+      scoreEl.textContent = score;
+      mistakesEl.textContent = mistakes;
+
+      let accuracy = totalClicks === 0 ? 100 : Math.round((score / totalClicks) * 100);
+      accuracyEl.textContent = accuracy + "%";
+    }
+
+    function randomInt(min, max) {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    // =========================
+    // 历史记录相关功能
+    // =========================
+
+    function getHistory() {
+      const data = localStorage.getItem(STORAGE_KEY);
+
+      if (!data) {
+        return [];
+      }
+
+      try {
+        return JSON.parse(data);
+      } catch (e) {
+        return [];
+      }
+    }
+
+    function saveHistory(record) {
+      const history = getHistory();
+      history.unshift(record);
+
+      // 最多保留最近 100 条，避免本地缓存过大
+      const limitedHistory = history.slice(0, 100);
+
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(limitedHistory));
+    }
+
+    function renderHistory() {
+      const history = getHistory();
+
+      renderHistorySummary(history);
+
+      if (history.length === 0) {
+        historyList.innerHTML = `
+          <div class="emptyHistory">
+            暂时还没有训练记录。<br>
+            完成一局训练后，这里会自动显示结果。
+          </div>
+        `;
+        return;
+      }
+
+      historyList.innerHTML = history.map((item, index) => {
+        return `
+          <div class="historyItem">
+            <div class="historyTime">#${history.length - index}　${item.time}</div>
+            <div>得分：<strong>${item.score}</strong></div>
+            <div>错误次数：<strong>${item.mistakes}</strong></div>
+            <div>命中率：<strong>${item.accuracy}%</strong></div>
+            <div>平均反应时间：<strong>${item.avgReaction} 毫秒</strong></div>
+            <div>总点击次数：<strong>${item.totalClicks}</strong></div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function renderHistorySummary(history) {
+      if (history.length === 0) {
+        historySummary.innerHTML = `
+          总训练次数：0<br>
+          暂无统计数据
+        `;
+        return;
+      }
+
+      const totalSessions = history.length;
+
+      const avgScore = Math.round(
+        history.reduce((sum, item) => sum + item.score, 0) / totalSessions
+      );
+
+      const avgMistakes = Math.round(
+        history.reduce((sum, item) => sum + item.mistakes, 0) / totalSessions
+      );
+
+      const avgAccuracy = Math.round(
+        history.reduce((sum, item) => sum + item.accuracy, 0) / totalSessions
+      );
+
+      const validReactionItems = history.filter(item => item.avgReaction > 0);
+      let avgReaction = 0;
+
+      if (validReactionItems.length > 0) {
+        avgReaction = Math.round(
+          validReactionItems.reduce((sum, item) => sum + item.avgReaction, 0) / validReactionItems.length
+        );
+      }
+
+      const bestScore = Math.max(...history.map(item => item.score));
+      const bestAccuracy = Math.max(...history.map(item => item.accuracy));
+
+      historySummary.innerHTML = `
+        总训练次数：<strong>${totalSessions}</strong><br>
+        平均得分：<strong>${avgScore}</strong><br>
+        平均错误：<strong>${avgMistakes}</strong><br>
+        平均命中率：<strong>${avgAccuracy}%</strong><br>
+        平均反应时间：<strong>${avgReaction} 毫秒</strong><br>
+        最高得分：<strong>${bestScore}</strong><br>
+        最高命中率：<strong>${bestAccuracy}%</strong>
+      `;
+    }
+
+    function clearHistory() {
+      const confirmed = confirm("确定要清空所有训练历史记录吗？这个操作无法恢复。");
+
+      if (!confirmed) {
+        return;
+      }
+
+      localStorage.removeItem(STORAGE_KEY);
+      renderHistory();
+    }
+
+    function toggleHistory() {
+      historyPanel.classList.toggle("open");
+      renderHistory();
+    }
+
+    function closeHistory() {
+      historyPanel.classList.remove("open");
+    }
+
+    function formatDateTime(date) {
+      const y = date.getFullYear();
+      const m = String(date.getMonth() + 1).padStart(2, "0");
+      const d = String(date.getDate()).padStart(2, "0");
+      const h = String(date.getHours()).padStart(2, "0");
+      const min = String(date.getMinutes()).padStart(2, "0");
+      const s = String(date.getSeconds()).padStart(2, "0");
+
+      return `${y}-${m}-${d} ${h}:${min}:${s}`;
+    }
+
+    // 页面加载时先准备历史记录，但默认不展开
+    renderHistory();
+  </script>
+
+</body>
+</html>
