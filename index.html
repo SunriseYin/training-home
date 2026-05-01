@@ -25,6 +25,36 @@
       text-align: center;
     }
 
+    .header-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .header-text {
+      text-align: center;
+      flex: 1;
+    }
+
+    .header-buttons {
+      display: flex;
+      gap: 10px;
+    }
+
+    .header-buttons button {
+      background: rgba(255,255,255,0.2);
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .header-buttons button:hover {
+      background: rgba(255,255,255,0.3);
+    }
+
     header h1 {
       margin: 0;
       font-size: 34px;
@@ -119,8 +149,16 @@
 <body>
 
   <header>
-    <h1>我的训练主页</h1>
-    <p>集中管理你的小游戏、工具和常用链接</p>
+    <div class="header-content">
+      <div class="header-text">
+        <h1>我的训练主页</h1>
+        <p>集中管理你的小游戏、工具和常用链接</p>
+      </div>
+      <div class="header-buttons">
+        <button id="export-btn">导出数据</button>
+        <button id="import-btn">导入数据</button>
+      </div>
+    </div>
   </header>
 
   <main>
@@ -161,6 +199,49 @@
   <footer>
     训练贵在稳定，不在一次练很久。
   </footer>
+
+  <script>
+    document.getElementById('export-btn').addEventListener('click', () => {
+      const data = {
+        attentionGameHistory: localStorage.getItem('attentionGameHistory') || '[]'
+        // 可以在这里添加其他页面的数据键，例如：
+        // otherPageData: localStorage.getItem('otherPageData') || '{}'
+      };
+      const json = JSON.stringify(data, null, 2);
+      const blob = new Blob([json], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'training-data.json';
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+
+    document.getElementById('import-btn').addEventListener('click', () => {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = '.json';
+      input.onchange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            try {
+              const data = JSON.parse(e.target.result);
+              for (const key in data) {
+                localStorage.setItem(key, data[key]);
+              }
+              alert('数据导入成功');
+            } catch (err) {
+              alert('JSON解析失败，请检查文件格式');
+            }
+          };
+          reader.readAsText(file);
+        }
+      };
+      input.click();
+    });
+  </script>
 
 </body>
 </html>
