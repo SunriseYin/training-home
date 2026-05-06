@@ -9,20 +9,20 @@
     body { margin: 0; font-family: Arial, "Microsoft YaHei", sans-serif; background: #f3f7fb; color: #222; }
     header { background: linear-gradient(135deg, #2c3e50, #3498db); color: white; padding: 34px 20px; text-align: center; }
     header h1 { margin: 0; font-size: 32px; }
-    header p { margin: 10px auto 0; max-width: 760px; font-size: 16px; opacity: 0.92; }
+    header p { margin: 10px auto 0; max-width: 760px; font-size: 16px; opacity: 0.92; line-height: 1.7; }
     main { max-width: 1120px; margin: 30px auto; padding: 0 20px; }
     .section-title { font-size: 24px; margin-bottom: 16px; color: #1f2937; }
-    .section-subtitle { color: #475569; margin-bottom: 24px; }
+    .section-subtitle { color: #475569; margin-bottom: 24px; line-height: 1.7; }
     .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 18px; }
     .repo-card { background: white; border-radius: 18px; padding: 22px; box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08); border: 1px solid #e2e8f0; }
     .repo-card h3 { margin: 0 0 10px; font-size: 20px; }
     .repo-card p { margin: 0; color: #475569; line-height: 1.7; }
-    .repo-badge { display: inline-flex; align-items: center; gap: 8px; margin-top: 16px; padding: 6px 12px; border-radius: 999px; background: #eff6ff; color: #2563eb; font-size: 13px; }
+    .repo-badge { display: inline-flex; align-items: center; gap: 8px; margin-top: 16px; margin-right: 8px; padding: 6px 12px; border-radius: 999px; background: #eff6ff; color: #2563eb; font-size: 13px; }
     .stats-panel { display: grid; gap: 24px; margin-top: 16px; }
     .calendar-card, .activity-card { background: white; border-radius: 20px; padding: 24px; box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06); border: 1px solid #e2e8f0; }
     .calendar-grid { display: grid; grid-auto-flow: column; grid-template-rows: repeat(7, 18px); gap: 5px; }
     .day-cell { width: 18px; height: 18px; border-radius: 4px; background: #ebedf0; position: relative; }
-    .day-cell:hover { outline: 2px solid rgba(59,130,246,0.4); outline-offset: 2px; }
+    .day-cell:hover { outline: 2px solid rgba(59, 130, 246, 0.4); outline-offset: 2px; }
     .day-cell[data-count="0"] { background: #ebedf0; }
     .level-1 { background: #c6e48b; }
     .level-2 { background: #7bc96f; }
@@ -34,9 +34,10 @@
     .activity-list { display: flex; flex-direction: column; gap: 16px; }
     .timeline-day { border-left: 3px solid #60a5fa; padding-left: 16px; position: relative; }
     .timeline-day::before { content: ""; width: 12px; height: 12px; border-radius: 50%; background: #3b82f6; position: absolute; left: -8px; top: 8px; }
-    .timeline-date { font-size: 16px; margin-bottom: 8px; color: #111827; }
-    .timeline-item { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px 16px; color: #334155; line-height: 1.6; }
+    .timeline-date { font-size: 16px; margin-bottom: 8px; color: #111827; line-height: 1.7; }
+    .timeline-item { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px 16px; color: #334155; line-height: 1.8; }
     .timeline-item strong { color: #0f172a; }
+    .timeline-meta { display: inline-block; margin-bottom: 8px; padding: 4px 10px; border-radius: 999px; background: #e0f2fe; color: #0369a1; font-size: 12px; }
     .empty-state { color: #64748b; font-size: 15px; margin-top: 12px; }
     .back-link { display: inline-flex; align-items: center; gap: 8px; margin-top: 12px; color: #2563eb; text-decoration: none; font-size: 14px; }
     .back-link:hover { text-decoration: underline; }
@@ -48,21 +49,21 @@
 <body>
   <header>
     <h1>训练数据统计</h1>
-    <p>这里统一展示你在浏览器本地保存的训练数据，包括已记录的训练模块、最近一年的训练热力日历和具体的训练活动时间线。</p>
+    <p>这里统一展示你在浏览器本地保存的训练数据，包括已记录的训练模块、最近一年的训练日历，以及区分不同训练时长的活动时间线。</p>
   </header>
 
   <main>
     <section>
-      <h2 class="section-title">Popular repositories</h2>
-      <p class="section-subtitle">检测到哪些训练模块已经产生了本地缓存数据。</p>
+      <h2 class="section-title">训练模块</h2>
+      <p class="section-subtitle">检测当前有哪些训练模块已经产生本地缓存数据，并汇总本次注意力训练的总次数、总时长与支持的训练时长。</p>
       <div class="card-grid" id="repoCards"></div>
       <p class="empty-state" id="repoEmpty" style="display:none;">目前还没有检测到任何训练模块记录。请先在训练页面完成一次训练。</p>
     </section>
 
     <section class="stats-panel">
       <div class="calendar-card">
-        <h2 class="section-title">Contributions in the last year</h2>
-        <p class="section-subtitle">类似 GitHub 的年度贡献日历。颜色越深，表示当天训练次数越多。</p>
+        <h2 class="section-title">最近一年的训练日历</h2>
+        <p class="section-subtitle">类似 GitHub 的贡献日历。颜色越深，表示当天训练次数越多。</p>
         <div class="calendar-grid" id="contributionCalendar"></div>
         <div class="legend">
           <span><span class="legend-dot" style="background:#ebedf0"></span>0 次</span>
@@ -74,8 +75,8 @@
       </div>
 
       <div class="activity-card">
-        <h2 class="section-title">Contribution activity</h2>
-        <p class="section-subtitle">按日期展示每次训练会话和对应结果。</p>
+        <h2 class="section-title">训练活动时间线</h2>
+        <p class="section-subtitle">按日期展示每次训练会话和对应结果，支持查看每局的训练时长和每分钟得分。</p>
         <div class="activity-list" id="activityList"></div>
         <p class="empty-state" id="activityEmpty" style="display:none;">暂无训练活动记录。完成训练后此处会自动生成时间线。</p>
       </div>
@@ -86,23 +87,92 @@
 
   <script>
     const STORAGE_KEY = "attentionGameHistory";
+    const DEFAULT_DURATION_MINUTES = 1;
+    const SUPPORTED_DURATIONS = [1, 5, 10];
     const REPOS = [
       {
         key: STORAGE_KEY,
         title: "注意力训练小游戏",
-        description: "保存了你的分数、错误、命中率和平均反应时间的训练历史。",
+        description: "\u4fdd\u5b58\u4f60\u7684\u5f97\u5206\u3001\u9519\u8bef\u3001\u547d\u4e2d\u7387\u3001\u5e73\u5747\u53cd\u5e94\u65f6\u95f4\u4ee5\u53ca\u8bad\u7ec3\u65f6\u957f\u5386\u53f2",
         icon: "🎯"
       }
     ];
 
+    function roundTo(value, digits = 1) {
+      const factor = 10 ** digits;
+      return Math.round(value * factor) / factor;
+    }
+
+    function getDurationLabel(minutes) {
+      return `${minutes} 分钟`;
+    }
+
+    function normalizeHistoryItem(item) {
+      const durationMinutesValue = Number(item.durationMinutes);
+      const durationSecondsValue = Number(item.durationSeconds);
+
+      let durationMinutes = durationMinutesValue;
+      if (!SUPPORTED_DURATIONS.includes(durationMinutes)) {
+        durationMinutes = durationSecondsValue > 0 ? Math.round(durationSecondsValue / 60) : DEFAULT_DURATION_MINUTES;
+      }
+      if (!SUPPORTED_DURATIONS.includes(durationMinutes)) {
+        durationMinutes = DEFAULT_DURATION_MINUTES;
+      }
+
+      const durationSeconds = durationMinutes * 60;
+      const score = Number(item.score) || 0;
+      const mistakes = Number(item.mistakes) || 0;
+      const totalClicks = Number(item.totalClicks) || 0;
+      const accuracy = Number.isFinite(Number(item.accuracy))
+        ? Number(item.accuracy)
+        : (totalClicks === 0 ? 0 : Math.round((score / totalClicks) * 100));
+      const avgReaction = Number(item.avgReaction) || 0;
+      const timestamp = Number(item.timestamp) || 0;
+      const scorePerMinute = Number.isFinite(Number(item.scorePerMinute))
+        ? Number(item.scorePerMinute)
+        : roundTo(score / durationMinutes, 1);
+
+      return {
+        time: item.time || "",
+        timestamp,
+        durationMinutes,
+        durationSeconds,
+        durationLabel: item.durationLabel || getDurationLabel(durationMinutes),
+        score,
+        scorePerMinute,
+        mistakes,
+        totalClicks,
+        accuracy,
+        avgReaction
+      };
+    }
+
     function getHistory() {
       const raw = localStorage.getItem(STORAGE_KEY);
-      if (!raw) return [];
-      try { return JSON.parse(raw); } catch { return []; }
+      if (!raw) {
+        return [];
+      }
+
+      try {
+        const parsed = JSON.parse(raw);
+        if (!Array.isArray(parsed)) {
+          return [];
+        }
+
+        return parsed
+          .map(normalizeHistoryItem)
+          .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+      } catch (error) {
+        return [];
+      }
     }
 
     function formatDate(date) {
-      return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
+      return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+    }
+
+    function formatMinutes(minutes) {
+      return `${minutes} 分钟`;
     }
 
     function getCountLevel(count, maxCount) {
@@ -114,106 +184,136 @@
     }
 
     function renderPopularRepositories(history) {
-      const repoCards = document.getElementById('repoCards');
-      const repoEmpty = document.getElementById('repoEmpty');
-      const activeRepos = REPOS.filter(repo => history.length > 0);
+      const repoCards = document.getElementById("repoCards");
+      const repoEmpty = document.getElementById("repoEmpty");
+      const activeRepos = REPOS.filter(() => history.length > 0);
 
       if (activeRepos.length === 0) {
-        repoCards.innerHTML = '';
-        repoEmpty.style.display = 'block';
+        repoCards.innerHTML = "";
+        repoEmpty.style.display = "block";
         return;
       }
 
-      repoEmpty.style.display = 'none';
-      repoCards.innerHTML = activeRepos.map(repo => {
+      const totalMinutes = history.reduce((sum, item) => sum + item.durationMinutes, 0);
+      const durationBreakdown = SUPPORTED_DURATIONS
+        .map((duration) => `${duration} 分钟 ${history.filter((item) => item.durationMinutes === duration).length} 次`)
+        .join(" / ");
+      const avgScorePerMinute = roundTo(
+        history.reduce((sum, item) => sum + item.scorePerMinute, 0) / history.length,
+        1
+      );
+
+      repoEmpty.style.display = "none";
+      repoCards.innerHTML = activeRepos.map((repo) => {
         return `
           <div class="repo-card">
             <div class="repo-badge">${repo.icon}</div>
             <h3>${repo.title}</h3>
             <p>${repo.description}</p>
             <div class="repo-badge">已记录会话：${history.length} 次</div>
+            <div class="repo-badge">累计时长：${formatMinutes(totalMinutes)}</div>
+            <div class="repo-badge">平均每分钟得分：${avgScorePerMinute}</div>
+            <div class="repo-badge">时长分布：${durationBreakdown}</div>
           </div>
         `;
-      }).join('');
+      }).join("");
     }
 
     function buildCalendarData(history) {
       const counts = {};
-      history.forEach(item => {
-        if (!item.time) return;
-        const dateKey = item.time.split(' ')[0];
+      history.forEach((item) => {
+        if (!item.time) {
+          return;
+        }
+
+        const dateKey = item.time.split(" ")[0];
         counts[dateKey] = (counts[dateKey] || 0) + 1;
       });
 
       const today = new Date();
       const start = new Date(today);
       start.setDate(start.getDate() - 364);
+
       const days = [];
-      for (let i = 0; i < 365; i++) {
+      for (let i = 0; i < 365; i += 1) {
         const day = new Date(start);
         day.setDate(start.getDate() + i);
         const key = formatDate(day);
         days.push({ date: day, key, count: counts[key] || 0 });
       }
+
       return days;
     }
 
     function renderContributionCalendar(history) {
-      const container = document.getElementById('contributionCalendar');
+      const container = document.getElementById("contributionCalendar");
       const days = buildCalendarData(history);
-      const maxCount = Math.max(...days.map(d => d.count), 1);
+      const maxCount = Math.max(...days.map((day) => day.count), 1);
 
-      const cells = days.map(day => {
+      container.innerHTML = days.map((day) => {
         const level = getCountLevel(day.count, maxCount);
-        const statusClass = level === 0 ? '' : `level-${level}`;
-        const countText = day.count === 0 ? '没有训练' : `训练 ${day.count} 次`;
+        const statusClass = level === 0 ? "" : `level-${level}`;
+        const countText = day.count === 0 ? "没有训练" : `训练 ${day.count} 次`;
         return `
           <div class="day-cell ${statusClass}" data-count="${day.count}">
             <span class="tooltip">${day.key} · ${countText}</span>
           </div>
         `;
-      }).join('');
-
-      container.innerHTML = cells;
+      }).join("");
     }
 
     function renderContributionActivity(history) {
-      const activityList = document.getElementById('activityList');
-      const activityEmpty = document.getElementById('activityEmpty');
+      const activityList = document.getElementById("activityList");
+      const activityEmpty = document.getElementById("activityEmpty");
+
       if (history.length === 0) {
-        activityList.innerHTML = '';
-        activityEmpty.style.display = 'block';
+        activityList.innerHTML = "";
+        activityEmpty.style.display = "block";
         return;
       }
-      activityEmpty.style.display = 'none';
+
+      activityEmpty.style.display = "none";
 
       const grouped = history.reduce((map, item) => {
-        const dateKey = item.time.split(' ')[0];
-        if (!map[dateKey]) map[dateKey] = [];
+        if (!item.time) {
+          return map;
+        }
+
+        const dateKey = item.time.split(" ")[0];
+        if (!map[dateKey]) {
+          map[dateKey] = [];
+        }
         map[dateKey].push(item);
         return map;
       }, {});
 
       const sortedDates = Object.keys(grouped).sort((a, b) => (a < b ? 1 : -1));
-      activityList.innerHTML = sortedDates.map(date => {
+      activityList.innerHTML = sortedDates.map((date) => {
         const items = grouped[date];
         const sessionCount = items.length;
+        const totalMinutes = items.reduce((sum, item) => sum + item.durationMinutes, 0);
         const averageScore = Math.round(items.reduce((sum, item) => sum + item.score, 0) / sessionCount);
+        const averageScorePerMinute = roundTo(
+          items.reduce((sum, item) => sum + item.scorePerMinute, 0) / sessionCount,
+          1
+        );
+
         return `
           <div class="timeline-day">
-            <div class="timeline-date">${date} · 共 ${sessionCount} 次训练 · 平均得分 ${averageScore}</div>
-            ${items.map(item => `
+            <div class="timeline-date">${date} · 共 ${sessionCount} 次训练 · 总时长 ${totalMinutes} 分钟 · 平均每分钟得分 ${averageScorePerMinute} · 平均得分 ${averageScore}</div>
+            ${items.map((item) => `
               <div class="timeline-item">
-                <div>时间：<strong>${item.time.split(' ')[1]}</strong></div>
+                <div class="timeline-meta">${item.durationLabel} · 每分钟得分 ${item.scorePerMinute}</div>
+                <div>时间：<strong>${item.time.split(" ")[1] || "--:--:--"}</strong></div>
                 <div>得分：<strong>${item.score}</strong></div>
                 <div>错误：<strong>${item.mistakes}</strong></div>
                 <div>命中率：<strong>${item.accuracy}%</strong></div>
                 <div>平均反应：<strong>${item.avgReaction} 毫秒</strong></div>
               </div>
-            `).join('')}
+            `).join("")}
           </div>
         `;
-      }).join('');
+      }).join("");
     }
 
     const history = getHistory();

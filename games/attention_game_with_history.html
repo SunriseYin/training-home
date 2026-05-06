@@ -2,6 +2,7 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>注意力训练小游戏 - 带历史记录</title>
   <style>
     body {
@@ -11,6 +12,7 @@
       text-align: center;
       user-select: none;
       overflow-x: hidden;
+      color: #222;
     }
 
     h1 {
@@ -18,10 +20,58 @@
       color: #333;
     }
 
+    .control-bar {
+      margin: 14px auto 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      font-size: 16px;
+      color: #334155;
+    }
+
+    .control-bar label {
+      font-weight: bold;
+    }
+
+    select,
+    button {
+      font-size: 18px;
+      padding: 10px 16px;
+      border: none;
+      border-radius: 8px;
+    }
+
+    select {
+      min-width: 120px;
+      border: 1px solid #cbd5e1;
+      background: white;
+      color: #222;
+    }
+
+    button {
+      background: #3498db;
+      color: white;
+      cursor: pointer;
+      margin: 8px;
+    }
+
+    button:hover {
+      background: #2980b9;
+    }
+
+    button:disabled,
+    select:disabled {
+      cursor: not-allowed;
+      opacity: 0.7;
+    }
+
     #info {
       margin: 10px auto;
       font-size: 18px;
       color: #333;
+      line-height: 1.8;
     }
 
     #gameArea {
@@ -33,7 +83,7 @@
       border-radius: 12px;
       position: relative;
       overflow: hidden;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     }
 
     .circle {
@@ -55,26 +105,12 @@
       background: #e74c3c;
     }
 
-    button {
-      font-size: 18px;
-      padding: 10px 24px;
-      border: none;
-      border-radius: 8px;
-      background: #3498db;
-      color: white;
-      cursor: pointer;
-      margin: 8px;
-    }
-
-    button:hover {
-      background: #2980b9;
-    }
-
     #result {
       font-size: 18px;
       color: #222;
       margin-top: 10px;
       line-height: 1.8;
+      min-height: 120px;
     }
 
     #tip {
@@ -89,7 +125,6 @@
       border: 1px solid #ddd;
     }
 
-    /* 右侧历史记录按钮 */
     #historyToggle {
       position: fixed;
       right: 0;
@@ -106,7 +141,6 @@
       background: #71368a;
     }
 
-    /* 历史记录面板 */
     #historyPanel {
       position: fixed;
       top: 0;
@@ -114,7 +148,7 @@
       width: 420px;
       height: 100vh;
       background: #ffffff;
-      box-shadow: -4px 0 12px rgba(0,0,0,0.25);
+      box-shadow: -4px 0 12px rgba(0, 0, 0, 0.25);
       z-index: 1000;
       transition: right 0.3s ease;
       display: flex;
@@ -141,6 +175,7 @@
       margin: 0;
       font-size: 14px;
       color: #ecf0f1;
+      line-height: 1.6;
     }
 
     #historyActions {
@@ -195,6 +230,16 @@
       margin-bottom: 5px;
     }
 
+    .historyMeta {
+      display: inline-block;
+      margin: 6px 0 8px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: #e8f1ff;
+      color: #2563eb;
+      font-size: 12px;
+    }
+
     .emptyHistory {
       color: #888;
       text-align: center;
@@ -225,7 +270,8 @@
     }
 
     @media (max-width: 900px) {
-      #gameArea, #tip {
+      #gameArea,
+      #tip {
         width: 92vw;
       }
 
@@ -237,19 +283,27 @@
   </style>
 </head>
 <body>
-
   <a class="back-link" href="../index.html">← 返回训练主页</a>
   <h1>注意力训练小游戏</h1>
 
+  <div class="control-bar">
+    <label for="durationSelect">训练时长</label>
+    <select id="durationSelect">
+      <option value="1" selected>1 分钟</option>
+      <option value="5">5 分钟</option>
+      <option value="10">10 分钟</option>
+    </select>
+  </div>
+
   <div id="info">
-    时间：<span id="time">60</span> 秒　
+    剩余时间：<span id="time">01:00</span>　
     得分：<span id="score">0</span>　
     错误：<span id="mistakes">0</span>　
     命中率：<span id="accuracy">100%</span>
   </div>
 
-  <button onclick="startGame()">开始游戏</button>
-  <button onclick="resetGame()">重置</button>
+  <button id="startBtn">开始训练</button>
+  <button id="resetBtn">重置</button>
 
   <div id="gameArea"></div>
 
@@ -258,33 +312,29 @@
   <div id="tip">
     <strong>玩法：</strong><br>
     1. 只点击绿色圆点，不要点击红色圆点。<br>
-    2. 每局 60 秒，结束后会自动记录本次训练结果。<br>
-    3. 点击右侧“历史记录”按钮，可以查看过往训练成果。<br>
-    4. 记录保存在浏览器本地缓存中，清理浏览器数据或更换浏览器后记录可能消失。<br><br>
-    <strong>分数规则：</strong><br>
-    - 45 分以上且错误少于 5 次：表现很好，说明注意力和反应能力都不错。<br>
-    - 25-44 分且错误少于 10 次：表现中等，建议继续练习稳定性。<br>
-    - 低于 25 分或错误较多：说明注意力不够集中，先放慢速度，减少错误更重要。<br><br>
-    <strong>提高注意力的简单方案：</strong><br>
-    - 每天坚持 5-10 分钟专注训练，保持稳定节奏。<br>
-    - 训练时远离干扰，关闭提示音、手机通知或其他干扰源。<br>
-    - 训练结束后稍作休息，避免疲劳导致注意力下降。<br>
-    - 养成规律作息、多喝水、适当运动的习惯，有助于提升整体注意力。<br>
+    2. 可以在开始前选择 1、5、10 分钟训练，默认是 1 分钟。<br>
+    3. 每局结束后会自动记录本次训练时长、得分、每分钟得分和反应数据。<br>
+    4. 点击右侧“历史记录”按钮，可以查看不同训练时长下的历史成绩。<br>
+    5. 记录保存在浏览器本地缓存中，清理浏览器数据或更换浏览器后记录可能消失。<br><br>
+    <strong>建议：</strong><br>
+    - 短时训练适合快速激活注意力，长时训练更适合观察稳定性。<br>
+    - 不同时长下，优先关注“每分钟得分”和错误控制，这样更方便横向比较。<br>
+    - 训练时尽量减少干扰，结束后稍作休息，再开始下一轮。<br>
   </div>
 
-  <button id="historyToggle" onclick="toggleHistory()">历史记录</button>
+  <button id="historyToggle">历史记录</button>
 
   <div id="historyPanel">
     <div id="historyHeader">
       <h2>训练历史记录</h2>
-      <p>这里记录你每次训练结束后的结果。</p>
+      <p>这里会记录每次训练结束后的结果，并兼容之前默认 60 秒的旧记录。</p>
     </div>
 
     <div id="historySummary"></div>
 
     <div id="historyActions">
-      <button id="closeHistoryBtn" onclick="closeHistory()">关闭</button>
-      <button id="clearHistoryBtn" onclick="clearHistory()">清空记录</button>
+      <button id="closeHistoryBtn">关闭</button>
+      <button id="clearHistoryBtn">清空记录</button>
     </div>
 
     <div id="historyList"></div>
@@ -297,34 +347,101 @@
     const mistakesEl = document.getElementById("mistakes");
     const accuracyEl = document.getElementById("accuracy");
     const resultEl = document.getElementById("result");
+    const durationSelect = document.getElementById("durationSelect");
+    const startBtn = document.getElementById("startBtn");
+    const resetBtn = document.getElementById("resetBtn");
 
     const historyPanel = document.getElementById("historyPanel");
     const historyList = document.getElementById("historyList");
     const historySummary = document.getElementById("historySummary");
+    const historyToggle = document.getElementById("historyToggle");
+    const closeHistoryBtn = document.getElementById("closeHistoryBtn");
+    const clearHistoryBtn = document.getElementById("clearHistoryBtn");
 
     const STORAGE_KEY = "attentionGameHistory";
+    const DEFAULT_DURATION_MINUTES = 1;
+    const SUPPORTED_DURATIONS = [1, 5, 10];
+    const MAX_HISTORY_RECORDS = 10000;
 
     let score = 0;
     let mistakes = 0;
     let totalClicks = 0;
-    let timeLeft = 60;
+    let timeLeft = DEFAULT_DURATION_MINUTES * 60;
+    let currentDurationMinutes = DEFAULT_DURATION_MINUTES;
     let gameRunning = false;
 
     let timer = null;
     let createTimer = null;
-
     let reactionTimes = [];
 
+    function getSelectedDurationMinutes() {
+      const duration = Number(durationSelect.value);
+      return SUPPORTED_DURATIONS.includes(duration) ? duration : DEFAULT_DURATION_MINUTES;
+    }
+
+    function getDurationLabel(minutes) {
+      return `${minutes} 分钟`;
+    }
+
+    function formatSeconds(seconds) {
+      const safeSeconds = Math.max(0, Number(seconds) || 0);
+      const minutes = String(Math.floor(safeSeconds / 60)).padStart(2, "0");
+      const remainingSeconds = String(safeSeconds % 60).padStart(2, "0");
+      return `${minutes}:${remainingSeconds}`;
+    }
+
+    function roundTo(value, digits = 1) {
+      const factor = 10 ** digits;
+      return Math.round(value * factor) / factor;
+    }
+
+    function getScorePerMinute(scoreValue, durationMinutes) {
+      return roundTo(scoreValue / durationMinutes, 1);
+    }
+
+    function getMistakesPerMinute(mistakeValue, durationMinutes) {
+      return roundTo(mistakeValue / durationMinutes, 1);
+    }
+
+    function setControlsDisabled(disabled) {
+      durationSelect.disabled = disabled;
+      startBtn.disabled = disabled;
+    }
+
+    function resetGame() {
+      gameRunning = false;
+      clearInterval(timer);
+      clearInterval(createTimer);
+
+      currentDurationMinutes = getSelectedDurationMinutes();
+      score = 0;
+      mistakes = 0;
+      totalClicks = 0;
+      timeLeft = currentDurationMinutes * 60;
+      reactionTimes = [];
+
+      timeEl.textContent = formatSeconds(timeLeft);
+      scoreEl.textContent = score;
+      mistakesEl.textContent = mistakes;
+      accuracyEl.textContent = "100%";
+      resultEl.innerHTML = "";
+      gameArea.innerHTML = "";
+      setControlsDisabled(false);
+    }
+
     function startGame() {
-      if (gameRunning) return;
+      if (gameRunning) {
+        return;
+      }
 
       resetGame();
       gameRunning = true;
       resultEl.innerHTML = "";
+      setControlsDisabled(true);
 
       timer = setInterval(() => {
-        timeLeft--;
-        timeEl.textContent = timeLeft;
+        timeLeft -= 1;
+        timeEl.textContent = formatSeconds(timeLeft);
 
         if (timeLeft <= 0) {
           endGame();
@@ -336,23 +453,16 @@
       }, 700);
     }
 
-    function resetGame() {
-      gameRunning = false;
-      clearInterval(timer);
-      clearInterval(createTimer);
+    function getResultComment(scorePerMinute, mistakesPerMinute) {
+      if (scorePerMinute >= 45 && mistakesPerMinute <= 5) {
+        return "表现很好，说明你的选择性注意和反应控制都很稳定";
+      }
 
-      score = 0;
-      mistakes = 0;
-      totalClicks = 0;
-      timeLeft = 60;
-      reactionTimes = [];
+      if (scorePerMinute >= 25 && mistakesPerMinute <= 10) {
+        return "表现不错，可以继续练习稳定性和反应速度";
+      }
 
-      timeEl.textContent = timeLeft;
-      scoreEl.textContent = score;
-      mistakesEl.textContent = mistakes;
-      accuracyEl.textContent = "100%";
-      resultEl.innerHTML = "";
-      gameArea.innerHTML = "";
+      return "建议先放慢节奏，优先减少误点，再慢慢提高速度";
     }
 
     function endGame() {
@@ -360,29 +470,21 @@
       clearInterval(timer);
       clearInterval(createTimer);
       gameArea.innerHTML = "";
+      setControlsDisabled(false);
 
-      let accuracy = totalClicks === 0 ? 0 : Math.round((score / totalClicks) * 100);
-
-      let avgReaction = 0;
-      if (reactionTimes.length > 0) {
-        avgReaction = Math.round(
-          reactionTimes.reduce((a, b) => a + b, 0) / reactionTimes.length
-        );
-      }
-
-      let comment = "";
-
-      if (score >= 45 && mistakes <= 5) {
-        comment = "表现很好，说明你的选择性注意和反应控制都不错。";
-      } else if (score >= 25 && mistakes <= 10) {
-        comment = "表现中等，可以继续练习稳定性和反应速度。";
-      } else {
-        comment = "建议先降低速度，不要急着点，优先减少错误。";
-      }
+      const accuracy = totalClicks === 0 ? 0 : Math.round((score / totalClicks) * 100);
+      const avgReaction = reactionTimes.length > 0
+        ? Math.round(reactionTimes.reduce((sum, item) => sum + item, 0) / reactionTimes.length)
+        : 0;
+      const scorePerMinute = getScorePerMinute(score, currentDurationMinutes);
+      const mistakesPerMinute = getMistakesPerMinute(mistakes, currentDurationMinutes);
+      const comment = getResultComment(scorePerMinute, mistakesPerMinute);
 
       resultEl.innerHTML = `
         <strong>训练结束</strong><br>
+        训练时长：${getDurationLabel(currentDurationMinutes)}<br>
         最终得分：${score}<br>
+        每分钟得分：${scorePerMinute}<br>
         错误次数：${mistakes}<br>
         命中率：${accuracy}%<br>
         平均反应时间：${avgReaction} 毫秒<br>
@@ -392,18 +494,24 @@
       saveHistory({
         time: formatDateTime(new Date()),
         timestamp: Date.now(),
-        score: score,
-        mistakes: mistakes,
-        totalClicks: totalClicks,
-        accuracy: accuracy,
-        avgReaction: avgReaction
+        durationMinutes: currentDurationMinutes,
+        durationSeconds: currentDurationMinutes * 60,
+        durationLabel: getDurationLabel(currentDurationMinutes),
+        score,
+        scorePerMinute,
+        mistakes,
+        totalClicks,
+        accuracy,
+        avgReaction
       });
 
       renderHistory();
     }
 
     function createCircle() {
-      if (!gameRunning) return;
+      if (!gameRunning) {
+        return;
+      }
 
       const circle = document.createElement("div");
       circle.classList.add("circle");
@@ -412,97 +520,145 @@
       circle.classList.add(isGreen ? "green" : "red");
 
       const size = randomInt(35, 65);
-      circle.style.width = size + "px";
-      circle.style.height = size + "px";
+      circle.style.width = `${size}px`;
+      circle.style.height = `${size}px`;
 
       const maxX = gameArea.clientWidth - size;
       const maxY = gameArea.clientHeight - size;
 
-      circle.style.left = randomInt(0, maxX) + "px";
-      circle.style.top = randomInt(0, maxY) + "px";
+      circle.style.left = `${randomInt(0, maxX)}px`;
+      circle.style.top = `${randomInt(0, maxY)}px`;
 
       const birthTime = Date.now();
 
-      circle.onclick = function(event) {
-        if (!gameRunning) return;
+      circle.addEventListener("click", (event) => {
+        if (!gameRunning) {
+          return;
+        }
 
-        totalClicks++;
+        totalClicks += 1;
 
         if (isGreen) {
-          score++;
-          const reactionTime = Date.now() - birthTime;
-          reactionTimes.push(reactionTime);
+          score += 1;
+          reactionTimes.push(Date.now() - birthTime);
         } else {
-          mistakes++;
+          mistakes += 1;
         }
 
         updateInfo();
         circle.remove();
         event.stopPropagation();
-      };
+      });
 
       gameArea.appendChild(circle);
 
-      let disappearTime = Math.max(600, 1800 - score * 15);
-
-      setTimeout(() => {
+      const disappearTime = Math.max(600, 1800 - score * 15);
+      window.setTimeout(() => {
         if (circle.parentNode) {
           circle.remove();
         }
       }, disappearTime);
     }
 
-    gameArea.onclick = function() {
-      if (!gameRunning) return;
+    gameArea.addEventListener("click", () => {
+      if (!gameRunning) {
+        return;
+      }
 
-      totalClicks++;
-      mistakes++;
+      totalClicks += 1;
+      mistakes += 1;
       updateInfo();
-    };
+    });
 
     function updateInfo() {
       scoreEl.textContent = score;
       mistakesEl.textContent = mistakes;
-
-      let accuracy = totalClicks === 0 ? 100 : Math.round((score / totalClicks) * 100);
-      accuracyEl.textContent = accuracy + "%";
+      const accuracy = totalClicks === 0 ? 100 : Math.round((score / totalClicks) * 100);
+      accuracyEl.textContent = `${accuracy}%`;
     }
 
     function randomInt(min, max) {
       return Math.floor(Math.random() * (max - min + 1)) + min;
     }
 
-    // =========================
-    // 历史记录相关功能
-    // =========================
+    function normalizeHistoryItem(item) {
+      const durationMinutesValue = Number(item.durationMinutes);
+      const durationSecondsValue = Number(item.durationSeconds);
+
+      let durationMinutes = durationMinutesValue;
+      if (!SUPPORTED_DURATIONS.includes(durationMinutes)) {
+        durationMinutes = durationSecondsValue > 0 ? Math.round(durationSecondsValue / 60) : DEFAULT_DURATION_MINUTES;
+      }
+      if (!SUPPORTED_DURATIONS.includes(durationMinutes)) {
+        durationMinutes = DEFAULT_DURATION_MINUTES;
+      }
+
+      const durationSeconds = durationMinutes * 60;
+      const scoreValue = Number(item.score) || 0;
+      const mistakesValue = Number(item.mistakes) || 0;
+      const totalClicksValue = Number(item.totalClicks) || 0;
+      const accuracyValue = Number.isFinite(Number(item.accuracy))
+        ? Number(item.accuracy)
+        : (totalClicksValue === 0 ? 0 : Math.round((scoreValue / totalClicksValue) * 100));
+      const avgReactionValue = Number(item.avgReaction) || 0;
+      const timestampValue = Number(item.timestamp) || Date.now();
+      const scorePerMinuteValue = Number.isFinite(Number(item.scorePerMinute))
+        ? Number(item.scorePerMinute)
+        : getScorePerMinute(scoreValue, durationMinutes);
+
+      return {
+        time: item.time || formatDateTime(new Date(timestampValue)),
+        timestamp: timestampValue,
+        durationMinutes,
+        durationSeconds,
+        durationLabel: item.durationLabel || getDurationLabel(durationMinutes),
+        score: scoreValue,
+        scorePerMinute: scorePerMinuteValue,
+        mistakes: mistakesValue,
+        totalClicks: totalClicksValue,
+        accuracy: accuracyValue,
+        avgReaction: avgReactionValue
+      };
+    }
 
     function getHistory() {
       const data = localStorage.getItem(STORAGE_KEY);
-
       if (!data) {
         return [];
       }
 
       try {
-        return JSON.parse(data);
-      } catch (e) {
+        const parsed = JSON.parse(data);
+        if (!Array.isArray(parsed)) {
+          return [];
+        }
+
+        return parsed
+          .map(normalizeHistoryItem)
+          .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+      } catch (error) {
         return [];
       }
     }
 
+    function persistHistory(history) {
+      const normalizedHistory = history
+        .map(normalizeHistoryItem)
+        .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0))
+        .slice(0, MAX_HISTORY_RECORDS);
+
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(normalizedHistory));
+      return normalizedHistory;
+    }
+
     function saveHistory(record) {
       const history = getHistory();
-      history.unshift(record);
-
-      // 最多保留最近 100 条，避免本地缓存过大
-      const limitedHistory = history.slice(0, 10000);
-
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(limitedHistory));
+      history.unshift(normalizeHistoryItem(record));
+      persistHistory(history);
     }
 
     function renderHistory() {
-      const history = getHistory();
-
+      const history = persistHistory(getHistory());
       renderHistorySummary(history);
 
       if (history.length === 0) {
@@ -519,6 +675,7 @@
         return `
           <div class="historyItem">
             <div class="historyTime">#${history.length - index}　${item.time}</div>
+            <div class="historyMeta">${item.durationLabel} · 每分钟得分 ${item.scorePerMinute}</div>
             <div>得分：<strong>${item.score}</strong></div>
             <div>错误次数：<strong>${item.mistakes}</strong></div>
             <div>命中率：<strong>${item.accuracy}%</strong></div>
@@ -539,45 +696,42 @@
       }
 
       const totalSessions = history.length;
-
-      const avgScore = Math.round(
-        history.reduce((sum, item) => sum + item.score, 0) / totalSessions
+      const totalMinutes = history.reduce((sum, item) => sum + item.durationMinutes, 0);
+      const avgScore = Math.round(history.reduce((sum, item) => sum + item.score, 0) / totalSessions);
+      const avgScorePerMinute = roundTo(
+        history.reduce((sum, item) => sum + item.scorePerMinute, 0) / totalSessions,
+        1
       );
+      const avgMistakes = Math.round(history.reduce((sum, item) => sum + item.mistakes, 0) / totalSessions);
+      const avgAccuracy = Math.round(history.reduce((sum, item) => sum + item.accuracy, 0) / totalSessions);
 
-      const avgMistakes = Math.round(
-        history.reduce((sum, item) => sum + item.mistakes, 0) / totalSessions
-      );
+      const validReactionItems = history.filter((item) => item.avgReaction > 0);
+      const avgReaction = validReactionItems.length > 0
+        ? Math.round(validReactionItems.reduce((sum, item) => sum + item.avgReaction, 0) / validReactionItems.length)
+        : 0;
 
-      const avgAccuracy = Math.round(
-        history.reduce((sum, item) => sum + item.accuracy, 0) / totalSessions
-      );
-
-      const validReactionItems = history.filter(item => item.avgReaction > 0);
-      let avgReaction = 0;
-
-      if (validReactionItems.length > 0) {
-        avgReaction = Math.round(
-          validReactionItems.reduce((sum, item) => sum + item.avgReaction, 0) / validReactionItems.length
-        );
-      }
-
-      const bestScore = Math.max(...history.map(item => item.score));
-      const bestAccuracy = Math.max(...history.map(item => item.accuracy));
+      const bestScore = Math.max(...history.map((item) => item.score));
+      const bestScorePerMinute = Math.max(...history.map((item) => item.scorePerMinute));
+      const durationBreakdown = SUPPORTED_DURATIONS
+        .map((duration) => `${duration} 分钟 ${history.filter((item) => item.durationMinutes === duration).length} 次`)
+        .join(" / ");
 
       historySummary.innerHTML = `
         总训练次数：<strong>${totalSessions}</strong><br>
+        累计训练时长：<strong>${totalMinutes} 分钟</strong><br>
+        时长分布：<strong>${durationBreakdown}</strong><br>
         平均得分：<strong>${avgScore}</strong><br>
+        平均每分钟得分：<strong>${avgScorePerMinute}</strong><br>
         平均错误：<strong>${avgMistakes}</strong><br>
         平均命中率：<strong>${avgAccuracy}%</strong><br>
         平均反应时间：<strong>${avgReaction} 毫秒</strong><br>
         最高得分：<strong>${bestScore}</strong><br>
-        最高命中率：<strong>${bestAccuracy}%</strong>
+        最高每分钟得分：<strong>${bestScorePerMinute}</strong>
       `;
     }
 
     function clearHistory() {
-      const confirmed = confirm("确定要清空所有训练历史记录吗？这个操作无法恢复。");
-
+      const confirmed = window.confirm("\u786e\u5b9a\u8981\u6e05\u7a7a\u6240\u6709\u8bad\u7ec3\u5386\u53f2\u8bb0\u5f55\u5417\uff1f\u8fd9\u4e2a\u64cd\u4f5c\u65e0\u6cd5\u6062\u590d");
       if (!confirmed) {
         return;
       }
@@ -602,13 +756,18 @@
       const h = String(date.getHours()).padStart(2, "0");
       const min = String(date.getMinutes()).padStart(2, "0");
       const s = String(date.getSeconds()).padStart(2, "0");
-
       return `${y}-${m}-${d} ${h}:${min}:${s}`;
     }
 
-    // 页面加载时先准备历史记录，但默认不展开
+    startBtn.addEventListener("click", startGame);
+    resetBtn.addEventListener("click", resetGame);
+    historyToggle.addEventListener("click", toggleHistory);
+    closeHistoryBtn.addEventListener("click", closeHistory);
+    clearHistoryBtn.addEventListener("click", clearHistory);
+    durationSelect.addEventListener("change", resetGame);
+
+    resetGame();
     renderHistory();
   </script>
-
 </body>
 </html>
